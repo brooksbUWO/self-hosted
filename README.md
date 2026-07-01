@@ -12,4 +12,5 @@ Store URL: `https://github.com/brooksbUWO/self-hosted`
   for browser-based management.
 
 Additional apps can be added as new top-level folders, each with its own `umbrel-app.yml` and
-`docker-compose.yml`, following the `<store-id>-<app-name>` id convention above.
+`docker-compose.yml`. App ids must be all-lowercase (Docker Compose rejects mixed-case project
+names), so folders follow `<store-id-lowercase>-<app-name>`, e.g. `brooksbuwo-headscale`.
