@@ -1,0 +1,37 @@
+manifestVersion: 1
+id: brooksbUWO-headscale
+name: Headscale
+tagline: Self-hosted, open-source Tailscale control server
+icon: https://raw.githubusercontent.com/juanfont/headscale/main/docs/logo/headscale-logo.png
+category: networking
+version: "0.29.1"
+port: 37071
+description: >-
+  Headscale is an open-source implementation of the Tailscale control server. It lets you
+  run your own private mesh VPN (built on WireGuard) without depending on Tailscale's hosted
+  coordination service.
+
+
+  This package runs the headscale daemon plus headscale-admin, a browser-based admin UI for
+  managing users, pre-auth keys, nodes, and routes.
+
+
+  The headscale daemon's API/registration port is published directly on the host (see the
+  README in this app's data directory after install) so Tailscale client devices can connect
+  to it. headscale-admin needs an API key to authenticate; a key is generated automatically
+  on first start and saved to this app's data directory for you to copy into the admin UI.
+developer: Juan Font
+website: https://headscale.net/
+submitter: brooksbUWO
+submission: https://github.com/brooksbUWO/self-hosted
+repo: https://github.com/juanfont/headscale
+support: https://github.com/juanfont/headscale/issues
+gallery:
+  - https://raw.githubusercontent.com/juanfont/headscale/main/docs/screenshots/headscale-admin-1.png
+releaseNotes: >-
+  Initial package: headscale 0.29.1 + headscale-admin 0.25.6, no embedded reverse proxy, no
+  Docker socket access. API key for headscale-admin is generated automatically on first boot.
+dependencies: []
+path: "/admin"
+defaultUsername: ""
+defaultPassword: ""
