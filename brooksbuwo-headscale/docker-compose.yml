@@ -11,19 +11,7 @@ services:
     image: >-
       ghcr.io/juanfont/headscale:0.29.1@sha256:8453e47ea6bf69cd2c550d230ad23f4cf9d0e7daa31c652da3cbb88dca059c62
     restart: on-failure
-    user: "1000:1000"
-    entrypoint: /bin/sh
-    command:
-      - -c
-      - |
-        set -e
-        headscale serve &
-        SERVE_PID=$$!
-        until [ -S /var/run/headscale/headscale.sock ]; do sleep 1; done
-        if [ ! -f /var/lib/headscale/api-key.txt ]; then
-          headscale apikeys create --expiration 8760h > /var/lib/headscale/api-key.txt
-        fi
-        wait "$$SERVE_PID"
+    command: serve
     environment:
       HEADSCALE_SERVER_URL: "http://${DEVICE_DOMAIN_NAME}:37070"
       HEADSCALE_LISTEN_ADDR: "0.0.0.0:8080"
