@@ -1,6 +1,6 @@
-## brooksbUWO Umbrel Community App Store
+## brooksbuwo Umbrel Community App Store
 
-Personal Umbrel Community App Store (store id `brooksbUWO`). Add its GitHub URL in the
+Personal Umbrel Community App Store (store id `brooksbuwo`). Add its GitHub URL in the
 umbrelOS "Community App Stores" settings to install apps from it.
 
 Store URL: `https://github.com/brooksbUWO/self-hosted`
