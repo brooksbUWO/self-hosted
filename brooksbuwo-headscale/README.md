@@ -1,4 +1,4 @@
-# Headscale (brooksbUWO app store)
+# Headscale (brooksbuwo app store)
 
 Runs the [headscale](https://github.com/juanfont/headscale) control server plus
 [headscale-admin](https://github.com/GoodiesHQ/headscale-admin) for browser-based management.
@@ -8,7 +8,7 @@ Runs the [headscale](https://github.com/juanfont/headscale) control server plus
 1. Open the app from the Umbrel dashboard — this opens headscale-admin at `/admin`.
 2. headscale-admin needs an API key to talk to the headscale server. One is generated
    automatically on first container start and saved to this app's data directory at
-   `data/lib/api-key.txt`. Open it via the Umbrel Files app (`apps/brooksbUWO-headscale/data/lib/api-key.txt`),
+   `data/lib/api-key.txt`. Open it via the Umbrel Files app (`apps/brooksbuwo-headscale/data/lib/api-key.txt`),
    copy the key, and paste it into headscale-admin's login screen along with the server
    address below.
 3. Server address for headscale-admin to connect to: `http://<your-umbrel-ip-or-hostname>:37070`

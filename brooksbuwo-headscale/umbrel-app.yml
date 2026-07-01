@@ -1,5 +1,5 @@
 manifestVersion: 1
-id: brooksbUWO-headscale
+id: brooksbuwo-headscale
 name: Headscale
 tagline: Self-hosted, open-source Tailscale control server
 icon: https://raw.githubusercontent.com/juanfont/headscale/main/docs/logo/headscale-logo.png

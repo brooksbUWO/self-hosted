@@ -7,7 +7,7 @@ Store URL: `https://github.com/brooksbUWO/self-hosted`
 
 ### Apps in this store
 
-- **[brooksbUWO-headscale](./brooksbUWO-headscale)** — [Headscale](https://github.com/juanfont/headscale),
+- **[brooksbuwo-headscale](./brooksbuwo-headscale)** — [Headscale](https://github.com/juanfont/headscale),
   a self-hosted Tailscale control server, plus [headscale-admin](https://github.com/GoodiesHQ/headscale-admin)
   for browser-based management.
 
