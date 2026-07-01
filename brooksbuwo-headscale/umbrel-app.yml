@@ -2,7 +2,7 @@ manifestVersion: 1
 id: brooksbuwo-headscale
 name: Headscale
 tagline: Self-hosted, open-source Tailscale control server
-icon: https://raw.githubusercontent.com/juanfont/headscale/main/docs/logo/headscale-logo.png
+icon: https://raw.githubusercontent.com/juanfont/headscale/main/docs/assets/logo/headscale3_header_stacked_left.png
 category: networking
 version: "0.29.1"
 port: 37071
@@ -26,8 +26,7 @@ submitter: brooksbUWO
 submission: https://github.com/brooksbUWO/self-hosted
 repo: https://github.com/juanfont/headscale
 support: https://github.com/juanfont/headscale/issues
-gallery:
-  - https://raw.githubusercontent.com/juanfont/headscale/main/docs/screenshots/headscale-admin-1.png
+gallery: []
 releaseNotes: >-
   Initial package: headscale 0.29.1 + headscale-admin 0.25.6, no embedded reverse proxy, no
   Docker socket access. API key for headscale-admin is generated automatically on first boot.
