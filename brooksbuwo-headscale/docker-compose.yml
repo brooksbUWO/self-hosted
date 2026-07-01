@@ -12,14 +12,8 @@ services:
       ghcr.io/juanfont/headscale:0.29.1@sha256:8453e47ea6bf69cd2c550d230ad23f4cf9d0e7daa31c652da3cbb88dca059c62
     restart: on-failure
     command: serve
-    environment:
-      HEADSCALE_SERVER_URL: "http://${DEVICE_DOMAIN_NAME}:37070"
-      HEADSCALE_LISTEN_ADDR: "0.0.0.0:8080"
-      HEADSCALE_METRICS_LISTEN_ADDR: "127.0.0.1:9090"
-      HEADSCALE_UNIX_SOCKET: "/var/run/headscale/headscale.sock"
-      HEADSCALE_DATABASE_TYPE: sqlite
-      HEADSCALE_DATABASE_SQLITE_PATH: /var/lib/headscale/db.sqlite
     volumes:
+      - "${APP_DATA_DIR}/config.yaml:/etc/headscale/config.yaml:ro"
       - "${APP_DATA_DIR}/data/lib:/var/lib/headscale"
       - "${APP_DATA_DIR}/data/run:/var/run/headscale"
     ports:
