@@ -3,17 +3,34 @@
 Runs the [headscale](https://github.com/juanfont/headscale) control server plus
 [headscale-admin](https://github.com/GoodiesHQ/headscale-admin) for browser-based management.
 
+Everything is served on **one port (37070)** through an embedded Traefik reverse proxy:
+
+| Path | Service |
+| --- | --- |
+| `/admin` | headscale-admin web UI |
+| everything else (`/api`, `/ts2021`, ...) | headscale daemon |
+
+This same-origin layout is required: headscale's REST API sends no CORS headers, so a
+browser-based UI can only call it from the same origin it was loaded from.
+
 ## First run
 
-1. Open the app from the Umbrel dashboard — this opens headscale-admin at `/admin`.
-2. headscale-admin needs an API key to talk to the headscale server. One is generated
-   automatically on first container start and saved to this app's data directory at
-   `data/lib/api-key.txt`. Open it via the Umbrel Files app (`apps/brooksbuwo-headscale/data/lib/api-key.txt`),
-   copy the key, and paste it into headscale-admin's login screen along with the server
-   address below.
-3. Server address for headscale-admin to connect to: `http://<your-umbrel-ip-or-hostname>:37070`
+1. Open the app from the Umbrel dashboard. This opens headscale-admin at
+   `http://<your-umbrel-ip-or-hostname>:37070/admin`.
+2. Create an API key for headscale-admin. In the umbrelOS web terminal
+   (Settings, Advanced, Terminal) or over SSH, run:
 
-No SSH or `docker exec` is required for this step.
+   ```bash
+   sudo docker exec brooksbuwo-headscale_headscale_1 headscale apikey create
+   ```
+
+   The key is printed once; copy it.
+3. In headscale-admin's Settings page enter:
+   - API URL: `http://<your-umbrel-ip-or-hostname>:37070` (same address the admin UI
+     itself is loaded from, without `/admin`)
+   - API Key: the key from step 2
+
+   After saving, the Users / Nodes / PreAuthKeys / Routes sections appear in the navigation.
 
 ## Connecting Tailscale client devices
 
@@ -23,16 +40,16 @@ Point Tailscale clients at your headscale server:
 tailscale up --login-server http://<your-umbrel-ip-or-hostname>:37070
 ```
 
-Port `37070` is published directly on the host for this purpose — it is the same port
-used above for headscale-admin's connection.
-
 ## Data persistence
 
-- `data/lib` — headscale's SQLite database, Noise/API keys, generated `api-key.txt`
-- `data/run` — the headscale Unix control socket (used internally, not for external access)
+- `data/lib` - headscale's SQLite database and Noise private key
+- `data/run` - the headscale Unix control socket (used internally, not for external access)
+- `config.yaml` - rendered from `config.yaml.template` at install time; `server_url` and
+  the MagicDNS base domain are derived automatically from Umbrel's device hostname
 
 ## Notes
 
-- No embedded reverse proxy and no Docker socket access are used in this package.
-- `server_url` is derived automatically from Umbrel's device hostname at container start;
-  no manual config file editing is required.
+- The embedded Traefik instance mounts the Docker socket read-only, the same as the
+  reference package this layout follows. It routes by path prefix only (no Host rule),
+  so the app works via IP address, `umbrel.local`, or any other hostname without
+  manual configuration.

@@ -4,8 +4,8 @@ name: Headscale
 tagline: Self-hosted, open-source Tailscale control server
 icon: https://raw.githubusercontent.com/juanfont/headscale/main/docs/assets/logo/headscale3_header_stacked_left.png
 category: networking
-version: "0.29.1"
-port: 37071
+version: "0.29.1-1"
+port: 37070
 description: >-
   Headscale is an open-source implementation of the Tailscale control server. It lets you
   run your own private mesh VPN (built on WireGuard) without depending on Tailscale's hosted
@@ -13,13 +13,13 @@ description: >-
 
 
   This package runs the headscale daemon plus headscale-admin, a browser-based admin UI for
-  managing users, pre-auth keys, nodes, and routes.
+  managing users, pre-auth keys, nodes, and routes. Both are served on one port through an
+  embedded reverse proxy: the admin UI at /admin, the headscale API everywhere else. Tailscale
+  client devices connect to the same port.
 
 
-  The headscale daemon's API/registration port is published directly on the host (see the
-  README in this app's data directory after install) so Tailscale client devices can connect
-  to it. headscale-admin needs an API key to authenticate; a key is generated automatically
-  on first start and saved to this app's data directory for you to copy into the admin UI.
+  headscale-admin needs an API key to authenticate; create one after install with a single
+  command (see the README in this app's folder) and paste it into the admin UI's Settings page.
 developer: Juan Font
 website: https://headscale.net/
 submitter: brooksbUWO
@@ -28,8 +28,10 @@ repo: https://github.com/juanfont/headscale
 support: https://github.com/juanfont/headscale/issues
 gallery: []
 releaseNotes: >-
-  Initial package: headscale 0.29.1 + headscale-admin 0.25.6, no embedded reverse proxy, no
-  Docker socket access. API key for headscale-admin is generated automatically on first boot.
+  Packaging fix: serve headscale and headscale-admin on the same origin through an embedded
+  Traefik reverse proxy (admin UI at /admin, API at /). headscale's API sends no CORS headers,
+  so the previous two-port layout made every browser API call from the admin UI fail its
+  preflight, leaving the admin UI unable to authenticate. Single app port is now 37070.
 dependencies: []
 path: "/admin"
 defaultUsername: ""
