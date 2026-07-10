@@ -1,0 +1,75 @@
+#!/bin/bash
+# hooks/pre-start -- runs before docker-compose up
+# Downloads and sha256-verifies both GGUF model files on first start.
+# Aborts loudly on any error or digest mismatch (set -e + explicit exit 1).
+set -e
+
+APP_DATA_DIR="${APP_DATA_DIR:-/app-data}"
+MODELS_DIR="${APP_DATA_DIR}/models"
+DATA_DIR="${APP_DATA_DIR}/data"
+
+mkdir -p "$MODELS_DIR" "$DATA_DIR"
+# chown may fail in some Umbrel container contexts; || true prevents aborting on permission error
+chown -R 1000:1000 "$APP_DATA_DIR" 2>/dev/null || true
+
+# ---------------------------------------------------------------------------
+# bge-m3 Q8_0 embedding model (635 MB)
+# SHA256: obtained by running `sha256sum bge-m3-Q8_0.gguf` after downloading once.
+# TODO (REQUIRED before Plan 04 deploy): replace the placeholder below with the
+#      real sha256 value.  Do NOT bypass or weaken this check.
+# Command to obtain: curl -fL --retry 3 -o /tmp/bge-m3-Q8_0.gguf \
+#   https://huggingface.co/gpustack/bge-m3-GGUF/resolve/main/bge-m3-Q8_0.gguf && \
+#   sha256sum /tmp/bge-m3-Q8_0.gguf
+# ---------------------------------------------------------------------------
+BGE_M3_FILE="$MODELS_DIR/bge-m3-Q8_0.gguf"
+BGE_M3_SHA256="TBD-FILL-IN-REAL-SHA256-BEFORE-COMMITTING-TO-PRODUCTION"
+BGE_M3_URL="https://huggingface.co/gpustack/bge-m3-GGUF/resolve/main/bge-m3-Q8_0.gguf"
+
+if [ ! -f "$BGE_M3_FILE" ]; then
+    echo "[brooks-memory] Downloading bge-m3-Q8_0.gguf (635 MB) ..."
+    curl -fL --retry 3 -o "$BGE_M3_FILE" "$BGE_M3_URL"
+    echo "[brooks-memory] Download complete: $BGE_M3_FILE"
+fi
+
+ACTUAL=$(sha256sum "$BGE_M3_FILE" | cut -d' ' -f1)
+if [ "$ACTUAL" != "$BGE_M3_SHA256" ]; then
+    echo "ERROR: bge-m3-Q8_0.gguf sha256 mismatch" >&2
+    echo "  Expected: $BGE_M3_SHA256" >&2
+    echo "  Got:      $ACTUAL" >&2
+    echo "  File removed. Re-run to re-download." >&2
+    rm -f "$BGE_M3_FILE"
+    exit 1
+fi
+echo "[brooks-memory] bge-m3-Q8_0.gguf sha256 OK"
+
+# ---------------------------------------------------------------------------
+# bge-reranker-v2-m3 Q4_K_M cross-encoder model (approx 300 MB)
+# SHA256: obtained by running `sha256sum bge-reranker-v2-m3-Q4_K_M.gguf` after downloading.
+# TODO (REQUIRED before Plan 04 deploy): replace the placeholder below with the
+#      real sha256 value.  Do NOT bypass or weaken this check.
+# Command to obtain: curl -fL --retry 3 -o /tmp/bge-reranker-v2-m3-Q4_K_M.gguf \
+#   https://huggingface.co/gpustack/bge-reranker-v2-m3-GGUF/resolve/main/bge-reranker-v2-m3-Q4_K_M.gguf && \
+#   sha256sum /tmp/bge-reranker-v2-m3-Q4_K_M.gguf
+# ---------------------------------------------------------------------------
+RERANKER_FILE="$MODELS_DIR/bge-reranker-v2-m3-Q4_K_M.gguf"
+RERANKER_SHA256="TBD-FILL-IN-REAL-SHA256-BEFORE-COMMITTING-TO-PRODUCTION"
+RERANKER_URL="https://huggingface.co/gpustack/bge-reranker-v2-m3-GGUF/resolve/main/bge-reranker-v2-m3-Q4_K_M.gguf"
+
+if [ ! -f "$RERANKER_FILE" ]; then
+    echo "[brooks-memory] Downloading bge-reranker-v2-m3-Q4_K_M.gguf ..."
+    curl -fL --retry 3 -o "$RERANKER_FILE" "$RERANKER_URL"
+    echo "[brooks-memory] Download complete: $RERANKER_FILE"
+fi
+
+ACTUAL=$(sha256sum "$RERANKER_FILE" | cut -d' ' -f1)
+if [ "$ACTUAL" != "$RERANKER_SHA256" ]; then
+    echo "ERROR: bge-reranker-v2-m3-Q4_K_M.gguf sha256 mismatch" >&2
+    echo "  Expected: $RERANKER_SHA256" >&2
+    echo "  Got:      $ACTUAL" >&2
+    echo "  File removed. Re-run to re-download." >&2
+    rm -f "$RERANKER_FILE"
+    exit 1
+fi
+echo "[brooks-memory] bge-reranker-v2-m3-Q4_K_M.gguf sha256 OK"
+
+echo "[brooks-memory] pre-start complete"

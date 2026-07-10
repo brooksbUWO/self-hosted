@@ -1,0 +1,91 @@
+# build-nornicdb-patched.yml
+#
+# Builds the patched NornicDB v1.1.10 image and pushes it to GHCR.
+#
+# Image: ghcr.io/brooksbuwo/nornicdb-patched:v1.1.10
+#
+# GHCR visibility note:
+#   Packages published by this workflow inherit the visibility of the repository
+#   (public repository -> public package). If this repository is private, the package
+#   defaults to private and must be made public manually once after the first push:
+#     GitHub -> your profile -> Packages -> nornicdb-patched -> Package settings
+#     -> Change visibility -> Public
+#   There is no in-workflow mechanism to set package visibility for the first push;
+#   it is a one-time manual action via the GHCR web UI.
+#
+# Digest surfacing:
+#   The image digest is printed to the job summary after every successful push.
+#   Copy the sha256:... value and paste it into docker-compose.yml where the
+#   <DIGEST-FROM-CI-RUN> placeholder appears.
+#
+# Action versions (verified current majors, 2026-07-10):
+#   actions/checkout          v6
+#   docker/login-action       v4
+#   docker/build-push-action  v7
+
+name: Build patched NornicDB image
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - "build/nornicdb-patched.Dockerfile"
+      - "build/mcp-notifications-initialized.patch"
+      - ".github/workflows/build-nornicdb-patched.yml"
+  workflow_dispatch:
+    inputs:
+      push_image:
+        description: "Push image to GHCR (true/false)"
+        required: false
+        default: "true"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: brooksbuwo/nornicdb-patched
+  TAG: v1.1.10
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: ./build
+          file: ./build/nornicdb-patched.Dockerfile
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' && (github.event.inputs.push_image != 'false') }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+
+      - name: Print image digest to job summary
+        if: steps.build.outputs.digest != ''
+        run: |
+          echo "## NornicDB Patched Image" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Tag:** \`ghcr.io/${{ env.IMAGE_NAME }}:${{ env.TAG }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Digest:** \`${{ steps.build.outputs.digest }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Full pinned reference for docker-compose.yml:**" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "image: ghcr.io/${{ env.IMAGE_NAME }}:${{ env.TAG }}@${{ steps.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Copy the digest above and replace <DIGEST-FROM-CI-RUN> in brooksbuwo-brooks-memory/docker-compose.yml" >> "$GITHUB_STEP_SUMMARY"

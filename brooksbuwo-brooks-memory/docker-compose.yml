@@ -1,0 +1,127 @@
+version: "3.7"
+
+services:
+
+  app_proxy:
+    environment:
+      # Container naming pattern: <app-id>_<service-name>_1 (verified from brooksbuwo-headscale template)
+      APP_HOST: brooksbuwo-brooks-memory_nornicdb_1
+      APP_PORT: 7474
+
+  nornicdb:
+    # CI-BUILT IMAGE (Plan 04):
+    # Built by GitHub Actions from build/nornicdb-patched.Dockerfile in brooksbuwo/self-hosted.
+    # Applies the MCP notifications/initialized patch (build/mcp-notifications-initialized.patch)
+    # to upstream orneryd/NornicDB v1.1.10 at CI time.
+    #
+    # The digest below comes from the CI job summary after the first successful push.
+    # To retrieve it: open the Actions run -> "Build patched NornicDB image" job summary.
+    # Or run: docker manifest inspect ghcr.io/brooksbuwo/nornicdb-patched:v1.1.10 \
+    #   | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('manifests',[{}])[0].get('digest','see config.digest below')); print(d.get('config',{}).get('digest',''))"
+    #
+    # Path B fallback (if CI image is not yet available):
+    #   Replace image: block with the stock image + enable mcp_proxy at the bottom:
+    #     image: >-
+    #       timothyswt/nornicdb-amd64-cpu:v1.1.10@sha256:<FULL-64-CHAR-DIGEST-FROM-MANIFEST-INSPECT>
+    #   Stock digest prefix (from gap register G5): 29dbb66c88ad
+    #   Full digest command: docker manifest inspect timothyswt/nornicdb-amd64-cpu:v1.1.10
+    image: >-
+      ghcr.io/brooksbuwo/nornicdb-patched:v1.1.10@sha256:<DIGEST-FROM-CI-RUN>
+    restart: on-failure
+    ports:
+      - "7474:7474"
+    volumes:
+      - "${APP_DATA_DIR}/data:/data"
+    environment:
+      # Feature flags -- workers explicitly OFF (verified against mechanism disposition table 2026-07-10)
+      NORNICDB_AUTO_LINKS_ENABLED: "false"
+      NORNICDB_BOLT_ENABLED: "false"          # Bolt defaults ON; OFF in MCP-only deploy (site #24-28 in disposition)
+
+      # Durability
+      NORNICDB_STRICT_DURABILITY: "true"
+
+      # Embedding service (internal: embeddings:8080, bge-m3 Q8_0)
+      NORNICDB_EMBEDDING_ENABLED: "true"
+      NORNICDB_EMBEDDING_PROVIDER: "openai"
+      NORNICDB_EMBEDDING_API_URL: "http://embeddings:8080"
+      NORNICDB_EMBEDDING_DIMENSIONS: "1024"
+      NORNICDB_EMBEDDING_API_KEY: "local-placeholder"
+
+      # Reranker service (internal: reranker:8081, bge-reranker-v2-m3 Q4_K_M)
+      # Full /v1/rerank path required: NornicDB CrossEncoder POSTs to configured URL directly
+      # (default hardcodes /rerank which does not exist on llama-server; source: rerank.go line 106)
+      NORNICDB_SEARCH_RERANK_ENABLED: "true"
+      NORNICDB_SEARCH_RERANK_PROVIDER: "http"
+      NORNICDB_SEARCH_RERANK_API_URL: "http://reranker:8081/v1/rerank"
+      NORNICDB_SEARCH_RERANK_MODEL: "bge-reranker-v2-m3"
+
+      # MVCC retention (env var IS real: config.go line 2058; no YAML config mount needed)
+      NORNICDB_MVCC_RETENTION_MAX_VERSIONS: "100"
+
+      # Auth -- secrets injected from Umbrel app environment (NEVER hardcode here)
+      NORNICDB_AUTH: "admin:${NORNICDB_ADMIN_PASSWORD}"
+      NORNICDB_AUTH_JWT_SECRET: "${NORNICDB_JWT_SECRET_VALUE}"   # AUTH_ prefix required (config.go line 1964)
+
+  embeddings:
+    # llama.cpp official server image (CPU, linux/amd64)
+    # DIGEST RESOLUTION (required before live deploy):
+    #   Cannot be resolved without Docker available locally or in CI.
+    #   Run this command on any linux/amd64 machine with Docker access:
+    #     docker manifest inspect ghcr.io/ggml-org/llama.cpp:server \
+    #       | python3 -c "import sys,json; m=json.load(sys.stdin); \
+    #           [print(x['digest']) for x in m.get('manifests',[]) \
+    #            if x.get('platform',{}).get('architecture')=='amd64' \
+    #            and x.get('platform',{}).get('os')=='linux']"
+    #   Then replace <LLAMA-CPP-SERVER-AMD64-DIGEST> below with the sha256:... value.
+    #   Both embeddings and reranker services use the same image (different model files).
+    image: >-
+      ghcr.io/ggml-org/llama.cpp:server@sha256:<LLAMA-CPP-SERVER-AMD64-DIGEST>
+    restart: on-failure
+    # No "ports:" -- embeddings is app-internal only; never published outside the Umbrel app network
+    command:
+      - "-m"
+      - "/models/bge-m3-Q8_0.gguf"
+      - "--embedding"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8080"
+    volumes:
+      - "${APP_DATA_DIR}/models:/models"
+
+  reranker:
+    # Same llama.cpp image as embeddings (one image, two model roles).
+    # Use the same digest as the embeddings service above.
+    image: >-
+      ghcr.io/ggml-org/llama.cpp:server@sha256:<LLAMA-CPP-SERVER-AMD64-DIGEST>
+    restart: on-failure
+    # No "ports:" -- reranker is app-internal only; never published outside the Umbrel app network
+    # --reranking enables /v1/rerank endpoint; --pooling rank is the correct mode for cross-encoder
+    # (source: llama-server --help; verified flags: --reranking enables endpoint, --pooling rank sets
+    #  single-logit cross-encoder output rather than embedding-style mean pooling)
+    command:
+      - "-m"
+      - "/models/bge-reranker-v2-m3-Q4_K_M.gguf"
+      - "--reranking"
+      - "--pooling"
+      - "rank"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8081"
+    volumes:
+      - "${APP_DATA_DIR}/models:/models"
+
+  # mcp_proxy is INACTIVE by default (Path B fallback only).
+  # Activate ONLY if the Path A patched NornicDB image is not yet available.
+  # When active: change nornicdb to use the stock image (see notes above) and
+  # update APP_HOST to point at mcp_proxy instead of nornicdb.
+  # mcp_proxy:
+  #   image: node:22-alpine
+  #   restart: on-failure
+  #   command: ["node", "/proxy/mcp-initialize-proxy.mjs"]
+  #   volumes:
+  #     - "./.claude/workspace/scripts/mcp-initialize-proxy.mjs:/proxy/mcp-initialize-proxy.mjs:ro"
+  #   environment:
+  #     UPSTREAM_URL: "http://brooksbuwo-brooks-memory_nornicdb_1:7474"
+  #     LISTEN_PORT: "7475"

@@ -1,0 +1,13 @@
+diff --git a/pkg/mcp/server.go b/pkg/mcp/server.go
+--- a/pkg/mcp/server.go
++++ b/pkg/mcp/server.go
+@@ -372,6 +372,10 @@ func (s *Server) handleMCP(w http.ResponseWriter, r *http.Request) {
+ 	switch req.Method {
+ 	case "initialize":
+ 		result, rpcErr = s.doInitialize(req.Params)
++	case "notifications/initialized":
++		// MCP streamable-HTTP: client sends this notification after initialize; no response body required.
++		w.WriteHeader(http.StatusAccepted)
++		return
+ 	case "tools/list":
+ 		result = s.doListTools()

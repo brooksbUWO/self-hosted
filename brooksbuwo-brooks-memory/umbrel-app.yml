@@ -1,0 +1,41 @@
+manifestVersion: 1
+id: brooksbuwo-brooks-memory
+name: brooks-memory
+tagline: Deterministic graph-vector memory for AI agents
+icon: https://raw.githubusercontent.com/orneryd/nornicdb/main/docs/assets/logo.png
+category: ai
+version: "1.1.10"
+port: 7475
+description: >-
+  brooks-memory runs NornicDB as a persistent graph-vector memory layer for
+  Claude Code, OpenCode, AntiGravity, and Codex. The daemon stores notes,
+  decisions, tasks, blockers, and code-graph facts with full MVCC history and
+  hybrid BM25 + HNSW vector search.
+
+
+  Includes two local llama.cpp inference services on the app-internal network:
+  bge-m3 (Q8_0) for 1024-dimensional dense embeddings and bge-reranker-v2-m3
+  (Q4_K_M) for cross-encoder reranking. Both models download automatically on
+  first start via hooks/pre-start (sha256-verified).
+
+
+  Machine port 7474 is published directly on the LAN for JWT-authenticated
+  harness adapters. The NornicDB UI is accessible via the Umbrel app proxy on
+  port 7475. JWT and admin password are set via Umbrel app environment variables.
+developer: orneryd (NornicDB upstream)
+website: https://github.com/orneryd/nornicdb
+submitter: brooksbUWO
+submission: https://github.com/brooksbUWO/self-hosted
+repo: https://github.com/orneryd/nornicdb
+support: https://github.com/orneryd/nornicdb/issues
+gallery: []
+releaseNotes: >-
+  Initial package: NornicDB v1.1.10 with MCP notifications/initialized patch,
+  bge-m3 (Q8_0) embeddings, and bge-reranker-v2-m3 (Q4_K_M) cross-encoder
+  reranking. Machine port 7474 direct-published (JWT required). UI behind
+  Umbrel app proxy on port 7475. See README.md for one-time llm_agent role
+  setup and environment variable reference.
+dependencies: []
+path: "/"
+defaultUsername: ""
+defaultPassword: ""
