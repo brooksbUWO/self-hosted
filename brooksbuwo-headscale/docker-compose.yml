@@ -17,6 +17,14 @@ services:
       ghcr.io/juanfont/headscale:0.29.1@sha256:8453e47ea6bf69cd2c550d230ad23f4cf9d0e7daa31c652da3cbb88dca059c62
     restart: on-failure
     command: serve
+    # Tailscale clients must reach headscale WITHOUT app_proxy in the path:
+    # app_proxy closes connections carrying the non-websocket
+    # "Upgrade: tailscale-control-protocol" header (the /ts2021 Noise
+    # handshake), so client logins through the 37070 chain never complete.
+    # 37071 exposes headscale directly for --login-server; the admin UI and
+    # REST API stay on 37070 behind Traefik for the same-origin layout.
+    ports:
+      - "37071:8080"
     volumes:
       - "${APP_DATA_DIR}/config.yaml:/etc/headscale/config.yaml:ro"
       - "${APP_DATA_DIR}/data/lib:/var/lib/headscale"

@@ -34,11 +34,25 @@ browser-based UI can only call it from the same origin it was loaded from.
 
 ## Connecting Tailscale client devices
 
-Point Tailscale clients at your headscale server:
+Point Tailscale clients at the DIRECT headscale port (37071), using the
+Umbrel's IP address:
 
 ```
-tailscale up --login-server http://<your-umbrel-ip-or-hostname>:37070
+tailscale up --login-server http://<your-umbrel-ip>:37071
 ```
+
+Two rules here, both learned the hard way:
+
+- **Port 37071, not 37070.** Umbrel's app proxy fronts every app port and
+  closes connections carrying the non-websocket
+  `Upgrade: tailscale-control-protocol` header, so a client pointed at 37070
+  fetches the server key but its `/ts2021` Noise handshake dies with an empty
+  reply and registration never completes. Port 37071 bypasses the proxy.
+- **IP address, not a hostname.** An open Tailscale client bug
+  (tailscale/tailscale#15008) latches the client into TLS/port-443 mode after
+  a failed Noise dial when the login server URL is a hostname
+  (`"controlhttp: forcing port 443 dial due to recent noise dial"`). Literal
+  private IPs are exempt from the heuristic on tailscale 1.80.3+.
 
 ## Data persistence
 

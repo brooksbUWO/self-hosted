@@ -4,7 +4,7 @@ name: Headscale
 tagline: Self-hosted, open-source Tailscale control server
 icon: https://raw.githubusercontent.com/juanfont/headscale/main/docs/assets/logo/headscale3_header_stacked_left.png
 category: networking
-version: "0.29.1-1"
+version: "0.29.1-2"
 port: 37070
 description: >-
   Headscale is an open-source implementation of the Tailscale control server. It lets you
@@ -15,7 +15,8 @@ description: >-
   This package runs the headscale daemon plus headscale-admin, a browser-based admin UI for
   managing users, pre-auth keys, nodes, and routes. Both are served on one port through an
   embedded reverse proxy: the admin UI at /admin, the headscale API everywhere else. Tailscale
-  client devices connect to the same port.
+  client devices connect on a separate direct port (37071) that bypasses Umbrel's app proxy,
+  which cannot carry the Tailscale control protocol handshake.
 
 
   headscale-admin needs an API key to authenticate; create one after install with a single
@@ -28,10 +29,11 @@ repo: https://github.com/juanfont/headscale
 support: https://github.com/juanfont/headscale/issues
 gallery: []
 releaseNotes: >-
-  Packaging fix: serve headscale and headscale-admin on the same origin through an embedded
-  Traefik reverse proxy (admin UI at /admin, API at /). headscale's API sends no CORS headers,
-  so the previous two-port layout made every browser API call from the admin UI fail its
-  preflight, leaving the admin UI unable to authenticate. Single app port is now 37070.
+  Fix Tailscale client logins: expose headscale directly on port 37071 for client
+  registration. Umbrel's app proxy closes connections that carry the Tailscale control
+  protocol upgrade (the /ts2021 Noise handshake), so clients pointed at the app port
+  (37070) could fetch the server key but never complete registration. Point Tailscale
+  clients at http://<umbrel-ip>:37071; the admin UI and REST API remain on 37070.
 dependencies: []
 path: "/admin"
 defaultUsername: ""
