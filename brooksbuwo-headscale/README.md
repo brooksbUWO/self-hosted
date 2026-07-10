@@ -42,9 +42,9 @@ tailscale up --login-server http://<your-umbrel-ip-or-hostname>:37070
 
 ## Data persistence
 
-- `data/lib` - headscale's SQLite database and Noise private key
-- `data/run` - the headscale Unix control socket (used internally, not for external access)
-- `config.yaml` - rendered from `config.yaml.template` at install time; `server_url` and
+- `data/lib`: headscale's SQLite database and Noise private key
+- `data/run`: the headscale Unix control socket (used internally, not for external access)
+- `config.yaml`: rendered from `config.yaml.template` at install time; `server_url` and
   the MagicDNS base domain are derived automatically from Umbrel's device hostname
 
 ## Notes
