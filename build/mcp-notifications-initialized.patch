@@ -11,3 +11,4 @@ diff --git a/pkg/mcp/server.go b/pkg/mcp/server.go
 +		return
  	case "tools/list":
  		result = s.doListTools()
+ 	case "tools/call":
