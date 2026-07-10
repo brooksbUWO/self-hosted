@@ -2,7 +2,8 @@
 # The stock image has no /android route; this build patches in the three
 # files that add it (same pattern as the existing /apple endpoint).
 
-FROM golang:1.24-alpine AS builder
+# headscale v0.29.1 go.mod requires go >= 1.26.4; golang images ship GOTOOLCHAIN=local
+FROM golang:1.26.4-alpine@sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648 AS builder
 
 WORKDIR /src
 
