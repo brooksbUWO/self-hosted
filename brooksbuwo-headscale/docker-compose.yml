@@ -13,8 +13,11 @@ services:
       PROXY_AUTH_ADD: "false"
 
   headscale:
-    image: >-
-      ghcr.io/juanfont/headscale:0.29.1@sha256:8453e47ea6bf69cd2c550d230ad23f4cf9d0e7daa31c652da3cbb88dca059c62
+    # Custom build adds the /android configuration endpoint (same pattern as /apple).
+    # Built from upstream v0.29.1 source with three patched files in headscale-src/.
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: on-failure
     command: serve
     # Tailscale clients must reach headscale WITHOUT app_proxy in the path:
