@@ -26,7 +26,7 @@ services:
     #   Stock digest prefix (from gap register G5): 29dbb66c88ad
     #   Full digest command: docker manifest inspect timothyswt/nornicdb-amd64-cpu:v1.1.10
     image: >-
-      ghcr.io/brooksbuwo/nornicdb-patched:v1.1.10@sha256:<DIGEST-FROM-CI-RUN>
+      ghcr.io/brooksbuwo/nornicdb-patched:v1.1.10@sha256:6543339fec036f710079265e8ea9d9873d22bd1b95f4a4bdedd35bdf69332e1a
     restart: on-failure
     ports:
       - "7474:7474"
@@ -75,7 +75,7 @@ services:
     #   Then replace <LLAMA-CPP-SERVER-AMD64-DIGEST> below with the sha256:... value.
     #   Both embeddings and reranker services use the same image (different model files).
     image: >-
-      ghcr.io/ggml-org/llama.cpp:server@sha256:<LLAMA-CPP-SERVER-AMD64-DIGEST>
+      ghcr.io/ggml-org/llama.cpp:server@sha256:295dc9897fa8a643e4a513fbcaada51d3b8db4b0afa4fda7aeae2386757de58b
     restart: on-failure
     # No "ports:" -- embeddings is app-internal only; never published outside the Umbrel app network
     command:
@@ -93,7 +93,7 @@ services:
     # Same llama.cpp image as embeddings (one image, two model roles).
     # Use the same digest as the embeddings service above.
     image: >-
-      ghcr.io/ggml-org/llama.cpp:server@sha256:<LLAMA-CPP-SERVER-AMD64-DIGEST>
+      ghcr.io/ggml-org/llama.cpp:server@sha256:295dc9897fa8a643e4a513fbcaada51d3b8db4b0afa4fda7aeae2386757de58b
     restart: on-failure
     # No "ports:" -- reranker is app-internal only; never published outside the Umbrel app network
     # --reranking enables /v1/rerank endpoint; --pooling rank is the correct mode for cross-encoder
