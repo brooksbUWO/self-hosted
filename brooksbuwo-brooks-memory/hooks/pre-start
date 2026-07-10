@@ -13,16 +13,14 @@ mkdir -p "$MODELS_DIR" "$DATA_DIR"
 chown -R 1000:1000 "$APP_DATA_DIR" 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
-# bge-m3 Q8_0 embedding model (635 MB)
-# SHA256: obtained by running `sha256sum bge-m3-Q8_0.gguf` after downloading once.
-# TODO (REQUIRED before Plan 04 deploy): replace the placeholder below with the
-#      real sha256 value.  Do NOT bypass or weaken this check.
-# Command to obtain: curl -fL --retry 3 -o /tmp/bge-m3-Q8_0.gguf \
-#   https://huggingface.co/gpustack/bge-m3-GGUF/resolve/main/bge-m3-Q8_0.gguf && \
-#   sha256sum /tmp/bge-m3-Q8_0.gguf
+# bge-m3 Q8_0 embedding model (635 MB, 634553760 bytes)
+# SHA256 sourced from the HuggingFace git-lfs pointer OID (authoritative):
+#   https://huggingface.co/gpustack/bge-m3-GGUF/raw/main/bge-m3-Q8_0.gguf
+#   -> oid sha256:950f4a8e...1167, size 634553760
+# Do NOT bypass or weaken this check.
 # ---------------------------------------------------------------------------
 BGE_M3_FILE="$MODELS_DIR/bge-m3-Q8_0.gguf"
-BGE_M3_SHA256="TBD-FILL-IN-REAL-SHA256-BEFORE-COMMITTING-TO-PRODUCTION"
+BGE_M3_SHA256="950f4a8e5e19477a6d3c26d2f162233c20002c601f75e4b002e3239997821167"
 BGE_M3_URL="https://huggingface.co/gpustack/bge-m3-GGUF/resolve/main/bge-m3-Q8_0.gguf"
 
 if [ ! -f "$BGE_M3_FILE" ]; then
@@ -43,16 +41,14 @@ fi
 echo "[brooks-memory] bge-m3-Q8_0.gguf sha256 OK"
 
 # ---------------------------------------------------------------------------
-# bge-reranker-v2-m3 Q4_K_M cross-encoder model (approx 300 MB)
-# SHA256: obtained by running `sha256sum bge-reranker-v2-m3-Q4_K_M.gguf` after downloading.
-# TODO (REQUIRED before Plan 04 deploy): replace the placeholder below with the
-#      real sha256 value.  Do NOT bypass or weaken this check.
-# Command to obtain: curl -fL --retry 3 -o /tmp/bge-reranker-v2-m3-Q4_K_M.gguf \
-#   https://huggingface.co/gpustack/bge-reranker-v2-m3-GGUF/resolve/main/bge-reranker-v2-m3-Q4_K_M.gguf && \
-#   sha256sum /tmp/bge-reranker-v2-m3-Q4_K_M.gguf
+# bge-reranker-v2-m3 Q4_K_M cross-encoder model (438 MB, 438376864 bytes)
+# SHA256 sourced from the HuggingFace git-lfs pointer OID (authoritative):
+#   https://huggingface.co/gpustack/bge-reranker-v2-m3-GGUF/raw/main/bge-reranker-v2-m3-Q4_K_M.gguf
+#   -> oid sha256:e186a244...3673, size 438376864
+# Do NOT bypass or weaken this check.
 # ---------------------------------------------------------------------------
 RERANKER_FILE="$MODELS_DIR/bge-reranker-v2-m3-Q4_K_M.gguf"
-RERANKER_SHA256="TBD-FILL-IN-REAL-SHA256-BEFORE-COMMITTING-TO-PRODUCTION"
+RERANKER_SHA256="e186a244ed455b4ab66ec64339ce7427a6ae13f5c0b5e544de96e50f0f8b3673"
 RERANKER_URL="https://huggingface.co/gpustack/bge-reranker-v2-m3-GGUF/resolve/main/bge-reranker-v2-m3-Q4_K_M.gguf"
 
 if [ ! -f "$RERANKER_FILE" ]; then
