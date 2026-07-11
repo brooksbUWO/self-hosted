@@ -8,7 +8,7 @@
 # (only .gitkeep, excluded by umbreld's rsync) so a token written there survives umbreld's
 # install-time rsync overlay. exports.sh reads it into APP_CF_API_TOKEN.
 
-CF_TOKEN_FILE="${APP_DATA_DIR}/data/cf-api-token"
+CF_TOKEN_FILE="${APP_DATA_DIR:-}/data/cf-api-token"
 
 if [ -s "$CF_TOKEN_FILE" ]; then
     echo "pre-start: CF token present at data/cf-api-token ($(wc -c < "$CF_TOKEN_FILE") bytes)"
