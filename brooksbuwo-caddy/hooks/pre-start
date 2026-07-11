@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# brooksbuwo-caddy/hooks/pre-start
+# Runs before docker compose up. Fails the install loudly if the CF token is absent.
+
+set -e
+
+CF_TOKEN_FILE="${APP_DATA_DIR}/cf-api-token"
+
+# The token must already exist (written by the 04-03 deploy step before install).
+if [ ! -s "$CF_TOKEN_FILE" ]; then
+    echo "FATAL: pre-start: Cloudflare token file missing or empty at $CF_TOKEN_FILE" >&2
+    echo "FATAL: Write the token to that path (OCC web terminal) BEFORE installing this app." >&2
+    echo "FATAL: Aborting install so Caddy does not start with an empty CF_API_TOKEN." >&2
+    exit 1
+fi
+chmod 600 "$CF_TOKEN_FILE" || true
+echo "pre-start: CF token present at APP_DATA_DIR/cf-api-token"

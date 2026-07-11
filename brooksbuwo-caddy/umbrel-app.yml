@@ -1,0 +1,27 @@
+manifestVersion: 1
+id: brooksbuwo-caddy
+name: Caddy HTTPS Proxy
+tagline: Shared HTTPS front door for tailnet apps
+category: networking
+version: "2.11.4"
+port: 80
+description: >-
+  Caddy reverse proxy with automatic HTTPS via Cloudflare DNS-01 challenge.
+  Serves wildcard certificates for bradleybrooks.net and proxies Vaultwarden
+  and future apps over the headscale tailnet. Tailnet-only access: DNS records
+  are grey-cloud (DNS-only), so subdomains are unreachable without a tailnet
+  connection.
+developer: caddyserver.com
+website: https://caddyserver.com
+submitter: brooksbUWO
+submission: https://github.com/brooksbUWO/self-hosted
+repo: https://github.com/caddyserver/caddy
+support: https://caddy.community
+gallery: []
+releaseNotes: >-
+  Initial release. Wildcard certificate for bradleybrooks.net via Cloudflare
+  DNS-01. Proxies vault.bradleybrooks.net to Vaultwarden over umbrel_main_network.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""

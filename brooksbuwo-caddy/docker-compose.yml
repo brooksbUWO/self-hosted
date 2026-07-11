@@ -1,0 +1,26 @@
+version: "3.7"
+
+services:
+
+  app_proxy:
+    environment:
+      # Caddy's cleartext listener (port 80 inside the container).
+      # Used only for Umbrel dashboard UI access; HTTPS clients use port 443 directly.
+      APP_HOST: brooksbuwo-caddy_caddy_1
+      APP_PORT: 80
+      PROXY_AUTH_ADD: "false"
+
+  caddy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: on-failure
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ${APP_DATA_DIR}/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${APP_DATA_DIR}/caddy-data:/data
+      - ${APP_DATA_DIR}/caddy-config:/config
+    environment:
+      CF_API_TOKEN: ${APP_CF_API_TOKEN}
