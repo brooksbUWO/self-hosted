@@ -2,6 +2,7 @@ manifestVersion: 1
 id: brooksbuwo-caddy
 name: Caddy HTTPS Proxy
 tagline: Shared HTTPS front door for tailnet apps
+icon: https://raw.githubusercontent.com/caddyserver/website/master/src/resources/images/icon-transparent.png
 category: networking
 version: "2.11.4"
 # Dashboard-access port that umbreld's app_proxy binds on the HOST for the "Open" link.
