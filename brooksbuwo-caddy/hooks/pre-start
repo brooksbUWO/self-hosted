@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 # brooksbuwo-caddy/hooks/pre-start
-# Runs before docker compose up. Fails the install loudly if the CF token is absent.
+# Runs before `docker compose up` (umbreld swallows this hook's exit code with `|| true`,
+# so it CANNOT gate the install -- it is informational only). Its job is to log clearly
+# whether the Cloudflare token is present so a missing token is diagnosable in the app logs.
+#
+# The token lives at ${APP_DATA_DIR}/data/cf-api-token -- a subdirectory that ships empty
+# (only .gitkeep, excluded by umbreld's rsync) so a token written there survives umbreld's
+# install-time rsync overlay. exports.sh reads it into APP_CF_API_TOKEN.
 
-set -e
+CF_TOKEN_FILE="${APP_DATA_DIR}/data/cf-api-token"
 
-CF_TOKEN_FILE="${APP_DATA_DIR}/cf-api-token"
-
-# The token must already exist (written by the 04-03 deploy step before install).
-if [ ! -s "$CF_TOKEN_FILE" ]; then
-    echo "FATAL: pre-start: Cloudflare token file missing or empty at $CF_TOKEN_FILE" >&2
-    echo "FATAL: Write the token to that path (OCC web terminal) BEFORE installing this app." >&2
-    echo "FATAL: Aborting install so Caddy does not start with an empty CF_API_TOKEN." >&2
-    exit 1
+if [ -s "$CF_TOKEN_FILE" ]; then
+    echo "pre-start: CF token present at data/cf-api-token ($(wc -c < "$CF_TOKEN_FILE") bytes)"
+    chmod 600 "$CF_TOKEN_FILE" 2>/dev/null || true
+else
+    echo "pre-start: WARNING CF token missing/empty at $CF_TOKEN_FILE" >&2
+    echo "pre-start: Caddy will start but DNS-01 cert acquisition will fail until the token is written." >&2
+    echo "pre-start: Write it with: printf '%s' '<cfat_...>' > $CF_TOKEN_FILE" >&2
 fi
-chmod 600 "$CF_TOKEN_FILE" || true
-echo "pre-start: CF token present at APP_DATA_DIR/cf-api-token"
