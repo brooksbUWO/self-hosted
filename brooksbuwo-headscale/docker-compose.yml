@@ -19,7 +19,7 @@ services:
     # Custom build adds the /android configuration endpoint (same pattern as /apple).
     # Built from upstream v0.29.1 source with three patched files in headscale-src/.
     build:
-      context: .
+      context: ${APP_DATA_DIR}
       dockerfile: Dockerfile
     restart: on-failure
     command: serve
@@ -59,7 +59,7 @@ services:
 
   provisioner:
     build:
-      context: .
+      context: ${APP_DATA_DIR}
       dockerfile: Dockerfile
     restart: "no"
     depends_on:
