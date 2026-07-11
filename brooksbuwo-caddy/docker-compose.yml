@@ -13,9 +13,14 @@ services:
       context: ${APP_DATA_DIR}
       dockerfile: Dockerfile
     restart: on-failure
+    # Publish ONLY 443 to the host (tailnet HTTPS at 100.64.0.2:443). Do NOT publish
+    # host port 80: umbrelOS already binds host :80 for its dashboard, so a "80:80"
+    # host publish makes `docker compose up` fail to bind and umbreld's install returns
+    # false. Caddy's internal :80 (HTTP->HTTPS redirect) still works inside the container,
+    # and the app_proxy reaches Caddy over the Docker network via APP_HOST:APP_PORT (the
+    # CONTAINER port 80), which needs no host publish.
     ports:
       - "443:443"
-      - "80:80"
     volumes:
       - ${APP_DATA_DIR}/Caddyfile:/etc/caddy/Caddyfile:ro
       - ${APP_DATA_DIR}/caddy-data:/data
