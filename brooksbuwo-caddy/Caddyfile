@@ -1,0 +1,33 @@
+# brooksbuwo-caddy/Caddyfile
+# Wildcard cert *.bradleybrooks.net via Cloudflare DNS-01.
+# Token injected as CF_API_TOKEN environment variable -- never hardcoded here.
+
+{
+    email brooksb@uwosh.edu
+    acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# Wildcard cert acquisition block.
+# 'abort' ensures no unmatched *.bradleybrooks.net requests are served.
+# Named site blocks below override this for specific hosts.
+*.bradleybrooks.net {
+    tls {
+        dns cloudflare {env.CF_API_TOKEN}
+    }
+    abort
+}
+
+# Vaultwarden (Phase 4)
+vault.bradleybrooks.net {
+    encode zstd gzip
+    reverse_proxy vaultwarden_server_1:8089 {
+        header_up X-Real-IP {remote_host}
+        flush_interval -1
+    }
+}
+
+# Future apps: add a new named site block here and a grey-cloud A record per app.
+# Example:
+# linkwarden.bradleybrooks.net {
+#     reverse_proxy linkwarden_web_1:3000
+# }
