@@ -12,7 +12,7 @@ services:
 
   caddy:
     build:
-      context: .
+      context: ${APP_DATA_DIR}
       dockerfile: Dockerfile
     restart: on-failure
     ports:
