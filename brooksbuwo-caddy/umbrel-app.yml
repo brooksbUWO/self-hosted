@@ -4,7 +4,12 @@ name: Caddy HTTPS Proxy
 tagline: Shared HTTPS front door for tailnet apps
 category: networking
 version: "2.11.4"
-port: 80
+# Dashboard-access port that umbreld's app_proxy binds on the HOST for the "Open" link.
+# Must NOT be 80 -- umbrelOS already binds host :80 for its own dashboard, so port: 80
+# makes app_proxy fail with "address already in use" and the install aborts. A high free
+# port (like the working headscale app's 37070) is the convention. The real Caddy HTTPS
+# listener is 443 (published by the caddy service), independent of this.
+port: 37080
 description: >-
   Caddy reverse proxy with automatic HTTPS via Cloudflare DNS-01 challenge.
   Serves wildcard certificates for bradleybrooks.net and proxies Vaultwarden
