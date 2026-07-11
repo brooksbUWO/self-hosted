@@ -13,6 +13,15 @@
 *.bradleybrooks.net {
     tls {
         dns cloudflare {env.CF_API_TOKEN}
+        # Run certmagic's DNS-01 propagation pre-check against Cloudflare's public
+        # resolvers directly. The system resolver spent 24h+ negative-caching NXDOMAIN
+        # for this zone (while delegation was pending), so it never sees the fresh
+        # _acme-challenge TXT and the challenge times out with "waiting for record to
+        # fully propagate" (last error: <nil>). Querying 1.1.1.1/1.0.0.1 bypasses that
+        # stale negative cache. propagation_delay gives Cloudflare's edge time to sync.
+        resolvers 1.1.1.1 1.0.0.1
+        propagation_delay 15s
+        propagation_timeout 5m
     }
     abort
 }
