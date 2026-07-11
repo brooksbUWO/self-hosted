@@ -1,0 +1,29 @@
+# headplane 0.7.0 configuration for brooksbuwo-headscale
+# Generated 2026-07-10; trusted_proxy_cidrs verified on-device before release.
+# cookie_secret is a fixed LAN-only value; the real auth gate is the Umbrel login wall.
+
+server:
+  host: "0.0.0.0"
+  port: 3000
+  base_url: "http://umbrel.local:37070"
+  data_path: "/var/lib/headplane"
+  cookie_secret: "headplane-brooksbuwo-secret-2025"
+  cookie_secure: false
+  cookie_max_age: 86400
+
+  proxy_auth:
+    enabled: true
+    trusted_proxy_cidrs:
+      - "10.21.0.0/16"
+    user_header: "Remote-User"
+    allowed_cidrs:
+      - "0.0.0.0/0"
+
+headscale:
+  url: "http://headscale:8080"
+  config_path: "/etc/headscale/config.yaml"
+  api_key_path: "/var/lib/headplane/headscale-api-key"
+
+integration:
+  docker:
+    enabled: false

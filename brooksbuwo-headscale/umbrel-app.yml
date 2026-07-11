@@ -4,7 +4,7 @@ name: Headscale
 tagline: Self-hosted, open-source Tailscale control server
 icon: https://raw.githubusercontent.com/juanfont/headscale/main/docs/assets/logo/headscale3_header_stacked_left.png
 category: networking
-version: "0.29.1-2"
+version: "0.29.1-3"
 port: 37070
 description: >-
   Headscale is an open-source implementation of the Tailscale control server. It lets you
@@ -12,15 +12,15 @@ description: >-
   coordination service.
 
 
-  This package runs the headscale daemon plus headscale-admin, a browser-based admin UI for
+  This package runs the headscale daemon plus Headplane, a browser-based admin UI for
   managing users, pre-auth keys, nodes, and routes. Both are served on one port through an
   embedded reverse proxy: the admin UI at /admin, the headscale API everywhere else. Tailscale
   client devices connect on a separate direct port (37071) that bypasses Umbrel's app proxy,
   which cannot carry the Tailscale control protocol handshake.
 
 
-  headscale-admin needs an API key to authenticate; create one after install with a single
-  command (see the README in this app's folder) and paste it into the admin UI's Settings page.
+  The admin UI opens automatically after Umbrel login. No API key creation and no terminal
+  commands are required. First-run setup is complete after opening the app from the Umbrel dashboard.
 developer: Juan Font
 website: https://headscale.net/
 submitter: brooksbUWO
@@ -29,11 +29,10 @@ repo: https://github.com/juanfont/headscale
 support: https://github.com/juanfont/headscale/issues
 gallery: []
 releaseNotes: >-
-  Fix Tailscale client logins: expose headscale directly on port 37071 for client
-  registration. Umbrel's app proxy closes connections that carry the Tailscale control
-  protocol upgrade (the /ts2021 Noise handshake), so clients pointed at the app port
-  (37070) could fetch the server key but never complete registration. Point Tailscale
-  clients at http://<umbrel-ip>:37071; the admin UI and REST API remain on 37070.
+  Version 0.29.1-3: adds Headplane as the admin UI (replaces headscale-admin). The admin
+  dashboard opens after Umbrel login with no terminal and no API key paste. Also ships the
+  /android configuration endpoint compiled from source (introduced in 0.29.1-2 as a
+  Dockerfile build; the /android endpoint returns the Android enrollment page at /android).
 dependencies: []
 path: "/admin"
 defaultUsername: ""

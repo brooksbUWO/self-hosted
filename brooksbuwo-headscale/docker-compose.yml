@@ -8,9 +8,12 @@ services:
     environment:
       APP_HOST: brooksbuwo-headscale_traefik_1
       APP_PORT: 80
-      # Tailscale clients and headscale-admin's API calls must reach headscale
-      # without Umbrel's login wall. Same setting as the reference package.
-      PROXY_AUTH_ADD: "false"
+      # Umbrel login wall is re-enabled. The headplane admin UI at /admin requires
+      # Umbrel authentication before the proxy forwards the request. Traefik then
+      # injects the Remote-User header so headplane auto-authenticates via proxy_auth.
+      # Tailscale clients use port 37071 which bypasses app_proxy entirely and is
+      # unaffected by this setting.
+      PROXY_AUTH_ADD: "true"
 
   headscale:
     # Custom build adds the /android configuration endpoint (same pattern as /apple).
@@ -37,20 +40,54 @@ services:
       - traefik.http.routers.headscale-rtr.rule=PathPrefix(`/`)
       - traefik.http.services.headscale-svc.loadbalancer.server.port=8080
 
-  headscale_admin:
-    image: >-
-      goodieshq/headscale-admin:0.25.6@sha256:d57c1d0e160f5a8aa3082e819050a43c0cd81b572e71da9b1e0cd499d18b48c1
+  headplane:
+    image: ghcr.io/tale/headplane:0.7.0@sha256:7bd6523a14567a43eb4ffa1e95e3d95456b8539c9d081757df3f228b9e836fb5
     restart: on-failure
     depends_on:
-      - headscale
+      headscale:
+        condition: service_started
+    volumes:
+      - "${APP_DATA_DIR}/headplane-config.yaml:/etc/headplane/config.yaml:ro"
+      - "${APP_DATA_DIR}/data/headplane:/var/lib/headplane"
+      - "${APP_DATA_DIR}/config.yaml:/etc/headscale/config.yaml:ro"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.headscale-admin-rtr.rule=PathPrefix(`/admin`)
-      - traefik.http.services.headscale-admin-svc.loadbalancer.server.port=80
+      - traefik.http.routers.headplane-rtr.rule=PathPrefix(`/admin`)
+      - traefik.http.services.headplane-svc.loadbalancer.server.port=3000
+      - traefik.http.routers.headplane-rtr.middlewares=inject-remote-user
+      - traefik.http.middlewares.inject-remote-user.headers.customrequestheaders.Remote-User=admin
+
+  provisioner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: "no"
+    depends_on:
+      headscale:
+        condition: service_started
+    entrypoint: /bin/sh
+    command: >
+      -c "
+      KEY_FILE=/var/lib/headplane/headscale-api-key;
+      if [ -f \"$$KEY_FILE\" ]; then echo 'API key file exists, skipping'; exit 0; fi;
+      echo 'Waiting for headscale unix socket...';
+      while [ ! -S /var/run/headscale/headscale.sock ]; do sleep 1; done;
+      echo 'Creating API key...';
+      KEY=$$(headscale apikeys create --expiration 9999d 2>/dev/null | tail -n1);
+      if [ -z \"$$KEY\" ]; then echo 'ERROR: empty key output' >&2; exit 1; fi;
+      printf '%s' \"$$KEY\" > \"$$KEY_FILE\";
+      echo 'API key written';
+      "
+    volumes:
+      - "${APP_DATA_DIR}/config.yaml:/etc/headscale/config.yaml:ro"
+      - "${APP_DATA_DIR}/data/run:/var/run/headscale"
+      - "${APP_DATA_DIR}/data/headplane:/var/lib/headplane"
+    labels:
+      - traefik.enable=false
 
   # headscale's REST API sends no CORS headers and rejects preflight OPTIONS,
-  # so headscale-admin (a browser SPA) can only talk to it from the SAME origin.
-  # Traefik serves both on one port: /admin -> admin UI, everything else -> headscale.
+  # so headplane (a browser SPA) can only talk to it from the SAME origin.
+  # Traefik serves both on one port: /admin -> headplane, everything else -> headscale.
   # PathPrefix-only rules (no Host matcher) so IP, umbrel.local, and tailnet
   # hostnames all work without the reference package's manual exports.sh edit.
   traefik:

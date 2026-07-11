@@ -1,13 +1,13 @@
 # Headscale (brooksbuwo app store)
 
 Runs the [headscale](https://github.com/juanfont/headscale) control server plus
-[headscale-admin](https://github.com/GoodiesHQ/headscale-admin) for browser-based management.
+[Headplane](https://github.com/tale/headplane) for browser-based management.
 
 Everything is served on **one port (37070)** through an embedded Traefik reverse proxy:
 
 | Path | Service |
 | --- | --- |
-| `/admin` | headscale-admin web UI |
+| `/admin` | Headplane admin UI |
 | everything else (`/api`, `/ts2021`, ...) | headscale daemon |
 
 This same-origin layout is required: headscale's REST API sends no CORS headers, so a
@@ -15,22 +15,11 @@ browser-based UI can only call it from the same origin it was loaded from.
 
 ## First run
 
-1. Open the app from the Umbrel dashboard. This opens headscale-admin at
-   `http://<your-umbrel-ip-or-hostname>:37070/admin`.
-2. Create an API key for headscale-admin. In the umbrelOS web terminal
-   (Settings, Advanced, Terminal) or over SSH, run:
+Open the app from the Umbrel dashboard. The Headplane admin UI loads automatically after
+Umbrel login. No terminal commands and no API key creation are required.
 
-   ```bash
-   sudo docker exec brooksbuwo-headscale_headscale_1 headscale apikey create
-   ```
-
-   The key is printed once; copy it.
-3. In headscale-admin's Settings page enter:
-   - API URL: `http://<your-umbrel-ip-or-hostname>:37070` (same address the admin UI
-     itself is loaded from, without `/admin`)
-   - API Key: the key from step 2
-
-   After saving, the Users / Nodes / PreAuthKeys / Routes sections appear in the navigation.
+A one-shot provisioner service creates the internal headscale API key on first start and
+writes it to the persistent data directory. Headplane reads the key automatically on startup.
 
 ## Connecting Tailscale client devices
 
@@ -54,10 +43,25 @@ Two rules here, both learned the hard way:
   (`"controlhttp: forcing port 443 dial due to recent noise dial"`). Literal
   private IPs are exempt from the heuristic on tailscale 1.80.3+.
 
+## API access
+
+| Access path | Port | Auth required | What it reaches |
+| --- | --- | --- | --- |
+| Tailscale control protocol | 37071 | None (by design) | headscale directly |
+| headscale REST API from LAN | 37071 | None | headscale directly |
+| Headplane admin UI | 37070 | Umbrel login wall, then auto-sign-in via proxy_auth | Headplane at /admin |
+| headscale REST API via 37070 | 37070 | Umbrel login wall | headscale via Traefik |
+
+The headscale REST API is accessible without authentication on port 37071. This is a
+deliberate trade-off: the Tailscale control protocol requires a raw TCP connection on this
+port and Umbrel's app proxy cannot forward it. Headscale's own API key authentication
+(the `Authorization: Bearer` header) still applies on port 37071 for REST calls.
+
 ## Data persistence
 
 - `data/lib`: headscale's SQLite database and Noise private key
 - `data/run`: the headscale Unix control socket (used internally, not for external access)
+- `data/headplane`: Headplane session data and the internal API key
 - `config.yaml`: rendered from `config.yaml.template` at install time; `server_url` and
   the MagicDNS base domain are derived automatically from Umbrel's device hostname
 
@@ -67,3 +71,5 @@ Two rules here, both learned the hard way:
   reference package this layout follows. It routes by path prefix only (no Host rule),
   so the app works via IP address, `umbrel.local`, or any other hostname without
   manual configuration.
+- The `/android` endpoint returns the Android enrollment page, compiled from source in
+  the same Dockerfile build that adds the `/apple` configuration endpoint.
