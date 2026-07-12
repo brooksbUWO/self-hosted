@@ -24,8 +24,14 @@
         # fully propagate" (last error: <nil>). Querying 1.1.1.1/1.0.0.1 bypasses that
         # stale negative cache. propagation_delay gives Cloudflare's edge time to sync.
         resolvers 1.1.1.1 1.0.0.1
-        propagation_delay 15s
-        propagation_timeout 5m
+        propagation_delay 30s
+        # propagation_timeout -1 DISABLES certmagic's local "has the TXT propagated?"
+        # self-check and submits the challenge to Let's Encrypt directly. The local check
+        # was unreliable here (timed out with "last error: <nil>" even though the
+        # _acme-challenge TXT resolves publicly via Cloudflare + Google DoH). Let's Encrypt
+        # does its own authoritative DNS validation, which works. propagation_delay 30s
+        # still gives Cloudflare's edge time to serve the record before LE checks.
+        propagation_timeout -1
     }
     abort
 }
