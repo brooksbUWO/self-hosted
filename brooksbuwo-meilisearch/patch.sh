@@ -34,19 +34,24 @@ apply_patch() {
         echo "[patcher] WARNING: no 'app' service in Linkwarden compose; skipping"
         return
     fi
-    # Idempotent check: only patch if MEILI_HOST is absent on the app service.
-    if ! yq '.services.app.environment | has("MEILI_HOST")' "$COMPOSE" | grep -q true; then
-        echo "[patcher] MEILI_HOST missing, re-applying..."
-        yq -i ".services.app.environment.MEILI_HOST = \"${MEILI_HOST}\"" "$COMPOSE"
-        yq -i ".services.app.environment.MEILI_MASTER_KEY = \"${MEILI_MASTER_KEY}\"" "$COMPOSE"
-        docker compose \
-          --project-name linkwarden \
-          --file "$COMPOSE" \
-          up --detach --no-build
-        echo "[patcher] patch applied; linkwarden restarted"
-    else
+    # Linkwarden's `environment` is a YAML block SEQUENCE ("- KEY=value" items), NOT a map.
+    # So detect presence by scanning the list items for a MEILI_HOST= entry, and add missing
+    # vars by APPENDING list items (+=) -- map assignment (.environment.KEY = v) would corrupt
+    # a sequence. Verified against the live Linkwarden v2.14.1 app-data compose (env is a list).
+    if yq '.services.app.environment[] | select(. == "MEILI_HOST=*")' "$COMPOSE" 2>/dev/null | grep -q "MEILI_HOST="; then
         echo "[patcher] MEILI_HOST already present; no-op"
+        return
     fi
+    echo "[patcher] MEILI_HOST missing, re-applying..."
+    # strenv() reads the values from THIS container's env (docker-compose.yml sets them),
+    # so the key never appears as a literal in this script.
+    MEILI_HOST="$MEILI_HOST" MEILI_MASTER_KEY="$MEILI_MASTER_KEY" \
+      yq -i '.services.app.environment += ["MEILI_HOST=" + strenv(MEILI_HOST), "MEILI_MASTER_KEY=" + strenv(MEILI_MASTER_KEY)]' "$COMPOSE"
+    docker compose \
+      --project-name linkwarden \
+      --file "$COMPOSE" \
+      up --detach --no-build
+    echo "[patcher] patch applied; linkwarden restarted"
 }
 
 # Self-heal on startup (catches missed events during downtime).
