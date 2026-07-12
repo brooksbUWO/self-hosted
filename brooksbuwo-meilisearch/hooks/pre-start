@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# brooksbuwo-meilisearch/hooks/pre-start
+# Runs before `docker compose up` (umbreld swallows this hook's exit code with `|| true`,
+# so it CANNOT gate the install -- it is informational only). Its job is to log clearly
+# whether the Meilisearch master key is present so a missing key is diagnosable in the logs.
+#
+# The key lives at ${APP_DATA_DIR}/data/meili-key/meili-master-key -- a subdirectory that
+# ships empty (only .gitkeep, excluded by umbreld's rsync) so a key written there survives
+# umbreld's install-time rsync overlay. exports.sh reads it into
+# APP_BROOKSBUWO_MEILISEARCH_MASTER_KEY.
+
+KEY_FILE="${APP_DATA_DIR:-}/data/meili-key/meili-master-key"
+
+if [ -s "$KEY_FILE" ]; then
+    echo "pre-start: Meilisearch master key present at data/meili-key/meili-master-key ($(wc -c < "$KEY_FILE") bytes)"
+    chmod 600 "$KEY_FILE" 2>/dev/null || true
+else
+    echo "pre-start: WARNING Meilisearch master key missing/empty at $KEY_FILE" >&2
+    echo "pre-start: Meilisearch will start but Linkwarden search init needs the key set." >&2
+    echo "pre-start: Generate + write it with:" >&2
+    echo "pre-start:   head -c 32 /dev/urandom | base64 | tr -d '/+=' | head -c 43 > $KEY_FILE" >&2
+fi

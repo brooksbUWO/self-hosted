@@ -1,0 +1,13 @@
+# Meilisearch master key -- NEVER commit. Generated on-box (Wave 2) into
+# data/meili-key/meili-master-key. The repo-root .gitignore already ignores
+# **/data/** (keeping only .gitkeep), but this explicit rule is a hard backstop
+# so a key copied to the dev box can never be staged by `git add`.
+data/meili-key/meili-master-key
+**/meili-master-key
+*.token
+*.secret
+
+# Meilisearch runtime index/data (populated at runtime under data/meili/).
+data/meili/**
+!data/meili/.gitkeep
+!data/meili-key/.gitkeep

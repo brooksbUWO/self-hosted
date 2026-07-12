@@ -1,0 +1,20 @@
+# Shell scripts and Umbrel hooks MUST stay LF-only. umbrelOS runs them under /bin/sh;
+# a CRLF checkout on a Windows dev box (core.autocrlf=true) would inject \r into every
+# command and break the scripts on-box. Pin the eol so checkouts are LF everywhere.
+*.sh text eol=lf
+exports.sh text eol=lf
+pre-start text eol=lf
+**/hooks/** text eol=lf
+patch.sh text eol=lf
+Dockerfile text eol=lf
+Caddyfile text eol=lf
+
+# YAML and Markdown: normalize to LF as well (safe, avoids noisy CRLF diffs).
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+
+# Never touch these as text.
+*.png binary
+*.svg binary
+*.ico binary
