@@ -54,3 +54,8 @@ linkwarden.bradleybrooks.net {
         flush_interval -1
     }
 }
+
+# OmniTools utility toolkit (Phase 6; no login wall -- D-01/D-02)
+omnitools.bradleybrooks.net {
+    reverse_proxy omnitools_app_1:80
+}
