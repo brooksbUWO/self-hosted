@@ -4,7 +4,11 @@
 
 {
     email brooksb@uwosh.edu
-    acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+    # Staging endpoint used to validate the DNS-01 flow first (avoids burning Let's
+    # Encrypt production rate limits on config errors). Now commented out so Caddy uses
+    # the default PRODUCTION ACME endpoint (https://acme-v02.api.letsencrypt.org/directory)
+    # and issues a publicly-trusted wildcard cert. Staging cert already confirmed working.
+    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 }
 
 # Wildcard cert acquisition block.
