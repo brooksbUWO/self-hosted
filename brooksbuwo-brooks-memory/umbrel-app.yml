@@ -2,7 +2,7 @@ manifestVersion: 1
 id: brooksbuwo-brooks-memory
 name: brooks-memory
 tagline: Deterministic graph-vector memory for AI agents
-icon: https://raw.githubusercontent.com/orneryd/nornicdb/main/docs/assets/logo.png
+icon: https://raw.githubusercontent.com/brooksbUWO/self-hosted/master/brooksbuwo-brooks-memory/icon.png
 category: ai
 version: "1.1.10"
 port: 7475
