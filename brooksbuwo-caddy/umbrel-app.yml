@@ -4,7 +4,7 @@ name: Caddy HTTPS Proxy
 tagline: Shared HTTPS front door for tailnet apps
 icon: https://raw.githubusercontent.com/caddyserver/website/master/src/resources/images/icon-transparent.png
 category: networking
-version: "2.11.4"
+version: "2.11.5"
 # Dashboard-access port that umbreld's app_proxy binds on the HOST for the "Open" link.
 # Must NOT be 80 -- umbrelOS already binds host :80 for its own dashboard, so port: 80
 # makes app_proxy fail with "address already in use" and the install aborts. A high free
