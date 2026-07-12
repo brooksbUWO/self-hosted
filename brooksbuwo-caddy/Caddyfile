@@ -45,8 +45,12 @@ vault.bradleybrooks.net {
     }
 }
 
-# Future apps: add a new named site block here and a grey-cloud A record per app.
-# Example:
-# linkwarden.bradleybrooks.net {
-#     reverse_proxy linkwarden_web_1:3000
-# }
+# Linkwarden (Phase 5)
+linkwarden.bradleybrooks.net {
+    encode zstd gzip
+    reverse_proxy linkwarden_app_1:3000 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        flush_interval -1
+    }
+}
