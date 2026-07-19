@@ -59,3 +59,11 @@ linkwarden.bradleybrooks.net {
 omnitools.bradleybrooks.net {
     reverse_proxy omnitools_app_1:80
 }
+
+# Brooks Memory (NornicDB MCP endpoint for agents).
+# Proxies the container port directly, NOT host port 7475: 7475 is umbrel's
+# app_proxy, which 302s unauthenticated requests to the dashboard login and
+# would break non-browser MCP clients. NornicDB enforces its own auth.
+memory.bradleybrooks.net {
+    reverse_proxy brooksbuwo-brooks-memory_nornicdb_1:7474
+}
