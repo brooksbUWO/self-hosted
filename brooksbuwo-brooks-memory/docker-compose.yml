@@ -26,13 +26,26 @@ services:
     #   Stock digest prefix (from gap register G5): 29dbb66c88ad
     #   Full digest command: docker manifest inspect timothyswt/nornicdb-amd64-cpu:v1.1.10
     image: >-
-      ghcr.io/brooksbuwo/nornicdb-patched:v1.1.10@sha256:6543339fec036f710079265e8ea9d9873d22bd1b95f4a4bdedd35bdf69332e1a
+      ghcr.io/brooksbuwo/nornicdb-patched:v1.2.0@sha256:c1ecf9f0edc0f615812f2e01e56e8ca2a3a625dc4f894c1c8a591cc1189f7f5f
     restart: on-failure
     ports:
       - "7474:7474"
     volumes:
       - "${APP_DATA_DIR}/data:/data"
     environment:
+      # Data dir is a SUBDIRECTORY of the mount, not the mount root (/data).
+      # NornicDB auto-recovery preserves a corrupted store by renaming the data
+      # dir; renaming a bind-mount root fails with EBUSY, which made recovery
+      # impossible until this was moved down a level (live incident 2026-07-29:
+      # "property key id not in dictionary" store corruption, recovered via
+      # snapshot+WAL replay once the rename could succeed).
+      NORNICDB_DATA_DIR: "/data/store"
+
+      # v1.2.0 note: upstream flipped auth to enabled-by-default. This deploy
+      # stays auth-off via the image env NORNICDB_NO_AUTH=true (--no-auth flag,
+      # entrypoint.sh line 33) under the standing MEM-03 waiver; enabling auth
+      # is tracked in the operator todo.
+
       # Feature flags -- workers explicitly OFF (verified against mechanism disposition table 2026-07-10)
       NORNICDB_AUTO_LINKS_ENABLED: "false"
       NORNICDB_BOLT_ENABLED: "false"          # Bolt defaults ON; OFF in MCP-only deploy (site #24-28 in disposition)
@@ -109,6 +122,17 @@ services:
       - "0.0.0.0"
       - "--port"
       - "8081"
+    # Override the image's built-in HEALTHCHECK, which probes port 8080
+    # (image config: ["CMD","curl","-f","http://localhost:8080/health"]).
+    # This service listens on 8081, so without this override the container
+    # reports permanently unhealthy while serving correctly (diagnosed
+    # 2026-07-22; curl is present in the image, verified from the image config).
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     volumes:
       - "${APP_DATA_DIR}/models:/models"
 
