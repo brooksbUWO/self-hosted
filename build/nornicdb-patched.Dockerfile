@@ -1,6 +1,7 @@
 # nornicdb-patched.Dockerfile
 #
-# Builds a patched NornicDB v1.1.10 image for linux/amd64.
+# Builds a patched NornicDB image for linux/amd64 at the tag given by the
+# NORNICDB_VERSION build arg (default v1.2.0).
 # Strategy: clone upstream at the exact tag, apply one .patch file, build headless.
 #
 # Why headless (noui,nolocalllm tags)?
@@ -25,6 +26,10 @@
 # =============================================================================
 FROM golang:1.26-bookworm AS builder
 
+# Upstream tag to build. Passed by the CI workflow; keep the default in sync
+# with the workflow's default tag.
+ARG NORNICDB_VERSION=v1.2.0
+
 WORKDIR /build
 
 RUN apt-get update && \
@@ -32,14 +37,16 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Clone upstream at the pinned tag (shallow: only the tagged commit, no history)
-RUN git clone --depth 1 --branch v1.1.10 \
+RUN git clone --depth 1 --branch ${NORNICDB_VERSION} \
         https://github.com/orneryd/NornicDB.git .
 
 # Apply the MCP notifications/initialized patch.
 # The patch targets pkg/mcp/server.go in the upstream source tree.
 # Validation: the hunk context (lines "switch req.Method", "case \"initialize\":",
-# "case \"tools/list\":") is present verbatim in v1.1.10 pkg/mcp/server.go
-# (source-verified against local mirror at .claude/workspace/repos/NornicDB/).
+# "case \"tools/list\":") is present verbatim in v1.1.10 THROUGH v1.2.0
+# pkg/mcp/server.go (v1.1.10 source-verified against the local mirror at
+# .claude/workspace/repos/NornicDB/; v1.2.0 source-verified against
+# raw.githubusercontent.com pkg/mcp/server.go lines 372-378 on 2026-07-29).
 # 'git apply' verifies context lines before applying; the build fails if they do not match.
 COPY mcp-notifications-initialized.patch .
 RUN git apply mcp-notifications-initialized.patch && \

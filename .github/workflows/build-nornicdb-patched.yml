@@ -1,8 +1,10 @@
 # build-nornicdb-patched.yml
 #
-# Builds the patched NornicDB v1.1.10 image and pushes it to GHCR.
+# Builds the patched NornicDB image and pushes it to GHCR.
+# The upstream tag is selectable: workflow_dispatch input `nornicdb_version`,
+# defaulting to DEFAULT_NORNICDB_VERSION for push-triggered builds.
 #
-# Image: ghcr.io/brooksbuwo/nornicdb-patched:v1.1.10
+# Image: ghcr.io/brooksbuwo/nornicdb-patched:<nornicdb_version>
 #
 # GHCR visibility note:
 #   Packages published by this workflow inherit the visibility of the repository
@@ -40,11 +42,17 @@ on:
         description: "Push image to GHCR (true/false)"
         required: false
         default: "true"
+      nornicdb_version:
+        description: "Upstream NornicDB tag to build (e.g. v1.2.0)"
+        required: false
+        default: "v1.2.0"
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: brooksbuwo/nornicdb-patched
-  TAG: v1.1.10
+  # Keep the fallback in sync with the Dockerfile's ARG default and the
+  # workflow_dispatch input default above.
+  TAG: ${{ github.event.inputs.nornicdb_version || 'v1.2.0' }}
 
 jobs:
   build-and-push:
@@ -73,6 +81,8 @@ jobs:
           platforms: linux/amd64
           push: ${{ github.event_name != 'pull_request' && (github.event.inputs.push_image != 'false') }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+          build-args: |
+            NORNICDB_VERSION=${{ env.TAG }}
 
       - name: Print image digest to job summary
         if: steps.build.outputs.digest != ''
