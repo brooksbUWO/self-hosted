@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # brooksbuwo-meilisearch/exports.sh
 # Exports APP_BROOKSBUWO_MEILISEARCH_MASTER_KEY for docker-compose.yml
-# (MEILI_MASTER_KEY on the meilisearch + linkwarden-patcher services).
+# (MEILI_MASTER_KEY on the meilisearch service).
 #
 # CRITICAL: umbreld sources this file under `set -u` at a point where APP_DATA_DIR may be
 # UNBOUND (it is not exported for the first source in app-script). Referencing a bare

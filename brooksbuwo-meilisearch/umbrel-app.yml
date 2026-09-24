@@ -4,7 +4,7 @@ name: Meilisearch
 tagline: Full-text search backend for Linkwarden
 icon: https://raw.githubusercontent.com/meilisearch/meilisearch/main/assets/logo.svg
 category: utilities
-version: "1.12.8"
+version: "1.12.8-patch.1"
 # Dashboard-access port that umbreld's app_proxy binds on the HOST for the "Open" link.
 # 37090 was audited free against every custom-store manifest (RESEARCH.md Port Audit);
 # Wave 2 re-confirms it is free on-box (ss -tlnp) before install. The real Meilisearch
@@ -13,9 +13,9 @@ port: 37090
 description: >-
   Standalone Meilisearch full-text search backend for Linkwarden. The Umbrel
   Linkwarden package ships no search service, so its Search Indexing job cannot
-  run. This app adds Meilisearch on the shared Docker network and a self-healing
-  sidecar that wires MEILI_HOST + MEILI_MASTER_KEY into Linkwarden's compose and
-  re-applies them automatically if a Linkwarden update overwrites the file.
+  run. This app adds Meilisearch on the shared Docker network. Set MEILI_HOST
+  and MEILI_MASTER_KEY on Linkwarden's app service in its umbrelOS custom
+  environment variables (Settings > Advanced > Environment variables).
   Tailnet-only: reachable through the Umbrel dashboard over the headscale tailnet.
 developer: Meili SAS
 website: https://www.meilisearch.com
@@ -25,9 +25,10 @@ repo: https://github.com/meilisearch/meilisearch
 support: https://github.com/meilisearch/meilisearch/issues
 gallery: []
 releaseNotes: >-
-  Initial release. Standalone Meilisearch backend for Linkwarden full-text
-  search. Includes a linkwarden-patcher sidecar that keeps MEILI_HOST and
-  MEILI_MASTER_KEY applied to Linkwarden across app updates.
+  Removes the linkwarden-patcher sidecar. Its restart step fails on umbrelOS
+  2.0, and umbrelOS 2.0 keeps per-app custom environment variables across app
+  updates. Set MEILI_HOST and MEILI_MASTER_KEY on Linkwarden's app service in
+  Settings > Advanced > Environment variables. Meilisearch itself is unchanged.
 dependencies: []
 path: ""
 defaultUsername: ""

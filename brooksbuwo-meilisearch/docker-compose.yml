@@ -13,7 +13,10 @@ services:
 
   # Service name MUST be "meilisearch" -> container brooksbuwo-meilisearch_meilisearch_1.
   # Do NOT rename to web/app/search: that changes the container name and breaks the
-  # MEILI_HOST that Linkwarden and the patcher point at (RESEARCH.md Pitfall 1 / EC-2).
+  # MEILI_HOST that Linkwarden points at (RESEARCH.md Pitfall 1 / EC-2).
+  # Linkwarden gets MEILI_HOST and MEILI_MASTER_KEY from its umbrelOS 2.0 custom
+  # environment variables (Settings > Advanced > Environment variables), which
+  # umbreld keeps across Linkwarden updates. This app no longer edits Linkwarden.
   meilisearch:
     image: getmeili/meilisearch:v1.12.8
     restart: on-failure
@@ -24,20 +27,3 @@ services:
     environment:
       MEILI_MASTER_KEY: ${APP_BROOKSBUWO_MEILISEARCH_MASTER_KEY}
       MEILI_NO_ANALYTICS: "true"
-
-  # Self-healing sidecar: watches Linkwarden's app-data compose and re-applies
-  # MEILI_HOST + MEILI_MASTER_KEY whenever a Linkwarden update overwrites them.
-  # alpine:3.21 ships none of yq/inotify-tools/docker-cli; patch.sh apk-installs them
-  # at container start (rare -- only on OS update/reboot; the box has outbound internet).
-  linkwarden-patcher:
-    image: alpine:3.21
-    restart: unless-stopped
-    volumes:
-      - /home/umbrel/umbrel/app-data/linkwarden:/watch:rw
-      - /var/run/docker.sock:/var/run/docker.sock:rw
-      - ${APP_DATA_DIR}/data/meili-key:/meili-key:ro
-      - ${APP_DATA_DIR}/patch.sh:/patch.sh:ro
-    environment:
-      MEILI_HOST: "http://brooksbuwo-meilisearch_meilisearch_1:7700"
-      MEILI_MASTER_KEY: ${APP_BROOKSBUWO_MEILISEARCH_MASTER_KEY}
-    entrypoint: ["/bin/sh", "/patch.sh"]

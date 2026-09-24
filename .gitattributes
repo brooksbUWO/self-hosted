@@ -5,7 +5,6 @@
 exports.sh text eol=lf
 pre-start text eol=lf
 **/hooks/** text eol=lf
-patch.sh text eol=lf
 Dockerfile text eol=lf
 Caddyfile text eol=lf
 
